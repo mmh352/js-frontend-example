@@ -4,40 +4,49 @@ import { fetchAll, fetchSingle, createSingle, deleteSingle, Article } from '../b
 
 export default createStore({
     state: {
-        articles: {} as {[x: string]: any},
-        articleIds: [] as string[],
+        articles: [] as Article[],
     },
     mutations: {
+        setArticles(state, payload: Article[]) {
+            state.articles = payload;
+        },
+
         addArticle(state, payload: Article) {
-            if (state.articles[payload.id]) {
-                state.articles[payload.id] = { ...state.articles[payload.id], ...payload };
-            } else {
-                state.articles[payload.id] = payload;
+            let found = false;
+            for (let idx = 0; idx < state.articles.length; idx++) {
+                if (state.articles[idx].id === payload.id) {
+                    state.articles[idx] = { ...state.articles[idx], ...payload };
+                    found = true;
+                }
             }
-            if (state.articleIds.indexOf(payload.id) < 0) {
-                state.articleIds.push(payload.id);
+            if (!found) {
+                state.articles.push(payload);
             }
         },
 
         newArticle(state, payload: Article) {
-            state.articleIds.splice(0, 0, payload.id);
-            state.articles[payload.id] = payload;
+            state.articles.splice(0, 0, payload);
         },
 
         removeArticle(state, payload: string) {
-            if (state.articles[payload]) {
-                delete state.articles[payload];
+            let foundIdx = -1;
+            for (let idx = 0; idx < state.articles.length; idx++) {
+                if (state.articles[idx].id === payload) {
+                    foundIdx = idx;
+                    break;
+                }
             }
-            if (state.articleIds.indexOf(payload) >= 0) {
-                state.articleIds.splice(state.articleIds.indexOf(payload), 1);
+            if (foundIdx >= 0) {
+                state.articles.splice(foundIdx, 1);
             }
         },
     },
     actions: {
-        init({ commit }) {
-            fetchAll().forEach((article) => {
-                commit('addArticle', article);
-            });
+        init({ commit, dispatch }) {
+            commit('setArticles', fetchAll());
+            setInterval(() => {
+                commit('setArticles', fetchAll());
+            }, 500);
         },
 
         fetchArticle({ commit }, id: string) {

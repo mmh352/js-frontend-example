@@ -14,9 +14,7 @@ import Article from './Article.vue';
 })
 export default class ArticleList extends ComponentRoot {
     get articles() {
-        return this.$store.state.articleIds.map((id: string) => {
-            return this.$store.state.articles[id];
-        });
+        return this.$store.state.articles;
     }
 }
 </script>
